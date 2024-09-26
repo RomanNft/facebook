@@ -24,6 +24,20 @@ pipeline {
         stage('Run Containers') {
             steps {
                 sh 'docker-compose up -d'
+                
+                // Очікування на успішне завершення контейнера migration
+                script {
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitUntil {
+                            def migrationStatus = sh(script: 'docker inspect --format="{{.State.Status}}" ofline_migration_1', returnStdout: true).trim()
+                            return migrationStatus == 'exited'
+                        }
+                        def migrationExitCode = sh(script: 'docker inspect --format="{{.State.ExitCode}}" ofline_migration_1', returnStdout: true).trim()
+                        if (migrationExitCode != '0') {
+                            error("Migration container failed with exit code ${migrationExitCode}")
+                        }
+                    }
+                }
             }
         }
 
