@@ -1,0 +1,18 @@
+route:
+  receiver: "telegram"
+  routes:
+    # All alerts with severity=warning or severity=critical
+    # are dispatched to the telegram receiver.
+    - receiver: "telegram"
+      group_wait: 10s
+      matchers:
+        - severity=~"warning|critical|firing"
+
+receivers:
+  - name: "telegram"
+    telegram_configs:
+      - bot_token: "7786559873:AAFtMcWgsAf0iu9bajjYhfPut1ru8QFVCfs"
+        chat_id: 804705806
+#  https://api.telegram.org/botINSERT_BOT_ID_HERE/getUpdates - to get chat_id
+#  curl -s "https://api.telegram.org/bot7465025695:AAHnb2S-Xqrjl-B_dfDqMMVdHC6jSem42fs/getUpdates"
+
