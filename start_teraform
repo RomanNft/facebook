@@ -1,0 +1,2 @@
+cd facebook
+snap install terraform --classic
