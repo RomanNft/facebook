@@ -23,6 +23,7 @@ services:
     depends_on:
       - db
     environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
     command: >
       sh -c '/app/wait-for-postgres.sh db /app/apply-migrations.sh'
@@ -42,6 +43,7 @@ services:
       - ./facebook-server/Facebook_Api/images/stories:/app/images/stories
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
     command: >
       sh -c "dotnet Facebook_Api.dll"
