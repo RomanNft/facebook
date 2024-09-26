@@ -1,36 +1,7 @@
 version: '3.8'
 
 services:
-  facebook-client:
-    build:
-      context: ./facebook-client
-    image: roman2447/facebook-client:latest
-    ports:
-      - "5173:80"
-    depends_on:
-      - facebook-server
-
-  facebook-server:
-    build:
-      context: ./facebook-server
-    image: roman2447/facebook-server:latest
-    ports:
-      - "5181:80"
-    depends_on:
-      - db
-    volumes:
-      - ./facebook-server/Facebook_Api/images/avatars:/app/images/avatars
-      - ./facebook-server/Facebook_Api/images/coverPhotos:/app/images/coverPhotos
-      - ./facebook-server/Facebook_Api/images/stories:/app/images/stories
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - POSTGRES_PASSWORD=123456
-    command: >
-      sh -c "/app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release' && dotnet Facebook_Api.dll"
-
   db:
-    build:
-      context: . # Ensure this points to your PostgreSQL Dockerfile
     image: roman2447/db-facebook:latest
     environment:
       POSTGRES_DB: facebook
@@ -54,6 +25,35 @@ services:
     environment:
       - POSTGRES_PASSWORD=123456
     command: >
-      sh -c "/app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"
+      sh -c '/app/wait-for-postgres.sh db /app/apply-migrations.sh'
+
+  facebook-server:
+    build:
+      context: ./facebook-server
+    image: roman2447/facebook-server:latest
+    ports:
+      - "5181:80"
+    depends_on:
+      migration:
+        condition: service_completed_successfully
+    volumes:
+      - ./facebook-server/Facebook_Api/images/avatars:/app/images/avatars
+      - ./facebook-server/Facebook_Api/images/coverPhotos:/app/images/coverPhotos
+      - ./facebook-server/Facebook_Api/images/stories:/app/images/stories
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - POSTGRES_PASSWORD=123456
+    command: >
+      sh -c "dotnet Facebook_Api.dll"
+
+  facebook-client:
+    build:
+      context: ./facebook-client
+    image: roman2447/facebook-client:latest
+    ports:
+      - "5173:80"
+    depends_on:
+      - facebook-server
+
 volumes:
   postgres_data:

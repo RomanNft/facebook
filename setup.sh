@@ -25,6 +25,9 @@ sudo systemctl start docker
 sudo systemctl enable docker
 sudo usermod -aG docker $USER
 
+# Повідомлення про перезайняття
+echo "Для застосування змін вам потрібно вийти та знову зайти."
+
 # Встановлення .NET SDK
 sudo snap install dotnet-sdk --classic
 sudo apt-get install -y apt-transport-https
@@ -45,7 +48,6 @@ echo "Поточний PATH: $PATH"
 cd facebook-server/
 chmod +x wait-for-postgres.sh
 cd ..
-#Ставим дженкінс
-#bash installJenkins.sh
 # Запуск Docker Compose з побудовою сервісів
 docker-compose up --build
+

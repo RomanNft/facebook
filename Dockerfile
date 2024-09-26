@@ -1,10 +1,11 @@
-# Use the official PostgreSQL image
+# Використовуємо офіційний образ PostgreSQL
 FROM postgres:latest
 
-# Set environment variables for PostgreSQL
+# Встановлюємо змінні середовища для PostgreSQL
 ENV POSTGRES_DB=facebook
 ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=123456
 
-# Expose the PostgreSQL port
+# Відкриваємо порт PostgreSQL
 EXPOSE 5432
+
