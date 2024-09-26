@@ -11,7 +11,7 @@ pipeline {
         stage('Build Docker Containers') {
             steps {
                 // Build all images including the db
-                sh 'docker-compose build'
+                sh 'docker-compose build --no-cache migration'
             }
         }
 
