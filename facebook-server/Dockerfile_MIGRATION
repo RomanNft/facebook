@@ -21,5 +21,5 @@ RUN dotnet tool install --global dotnet-ef
 COPY apply-migrations.sh /app/apply-migrations.sh
 RUN chmod +x /app/apply-migrations.sh
 
-RUN dotnet tool install --global dotnet-ef # Інсталяція dotnet-ef під час створення образу
-CMD ["sh", "-c", "/app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"]
+# Запуск міграцій
+CMD ["sh", "-c", "/app/wait-for-postgres.sh db /app/apply-migrations.sh"]]
