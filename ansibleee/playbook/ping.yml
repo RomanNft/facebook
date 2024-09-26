@@ -1,0 +1,26 @@
+---
+- name: Ensure sshpass is installed and ping all worker nodes
+  hosts: workers
+  become: yes
+  vars_prompt:
+    - name: ansible_ssh_pass
+      prompt: "Enter SSH password"
+      private: yes
+    - name: ansible_become_pass
+      prompt: "Enter sudo password"
+      private: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install sshpass
+      apt:
+        name: sshpass
+        state: present
+
+- name: Ping all worker nodes
+  hosts: workers
+  tasks:
+    - name: Ping the worker nodes
+      ping:

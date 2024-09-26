@@ -1,0 +1,75 @@
+---
+- name: Install Jenkins inside Docker container
+  hosts: all
+  become: yes
+  tasks:
+    - name: Set permissions for Docker socket
+      file:
+        path: /var/run/docker.sock
+        mode: '0666'
+
+    - name: Remove existing Jenkins container if it exists
+      docker_container:
+        name: jenkins
+        state: absent
+
+    - name: Run Jenkins Docker container
+      docker_container:
+        name: jenkins
+        image: jenkins/jenkins:lts  # Replace with your Docker image if necessary
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - jenkins_home:/var/jenkins_home
+
+    - name: Wait for Jenkins to initialize
+      pause:
+        minutes: 1
+
+    - name: Display Jenkins initial admin password
+      command: docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+      register: jenkins_password
+      changed_when: false
+
+    - name: Print Jenkins initial admin password
+      debug:
+        msg: "Initial Jenkins admin password: {{ jenkins_password.stdout }}"
+
+    - name: Generate SSH key inside Jenkins Docker container
+      command: >
+        docker exec jenkins bash -c 'mkdir -p /var/jenkins_home/.ssh/ &&
+                                     ssh-keygen -t ed25519 -f /var/jenkins_home/.ssh/id_ed25519 -C "artemlukianyk2005@gmail.com" -q -N ""'
+
+    - name: Display Jenkins SSH public key
+      command: docker exec jenkins cat /var/jenkins_home/.ssh/id_ed25519.pub
+      register: jenkins_ssh_pub_key
+      changed_when: false
+
+    - name: Print Jenkins SSH public key
+      debug:
+        msg: "Jenkins SSH public key: {{ jenkins_ssh_pub_key.stdout }}"
+
+    - name: Display Jenkins SSH private key
+      command: docker exec jenkins cat /var/jenkins_home/.ssh/id_ed25519
+      register: jenkins_ssh_priv_key
+      changed_when: false
+
+    - name: Print Jenkins SSH private key
+      debug:
+        msg: "Jenkins SSH private key (WARNING: Do not share this): {{ jenkins_ssh_priv_key.stdout }}"
+
+    - name: Add GitHub to known hosts for Jenkins container
+      command: docker exec jenkins bash -c 'ssh-keyscan -t ed25519 github.com >> /var/jenkins_home/.ssh/known_hosts'
+
+    - name: Verify known hosts
+      command: docker exec jenkins cat /var/jenkins_home/.ssh/known_hosts
+      register: known_hosts
+      changed_when: false
+
+    - name: Print known hosts
+      debug:
+        msg: "Jenkins known hosts: {{ known_hosts.stdout }}"

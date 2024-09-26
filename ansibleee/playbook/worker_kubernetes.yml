@@ -1,0 +1,92 @@
+---
+- name: Kubernetes Worker Node Setup
+  hosts: workers
+  become: yes
+  tasks:
+    - name: Stop Kubernetes services
+      ansible.builtin.shell: |
+        systemctl stop kubelet || true
+      ignore_errors: yes
+
+    - name: Reset kubeadm
+      ansible.builtin.shell: kubeadm reset -f
+      ignore_errors: yes
+
+    - name: Disable swap
+      ansible.builtin.shell: |
+        swapoff -a
+        sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+    - name: Load necessary kernel modules
+      ansible.builtin.shell: |
+        modprobe overlay
+        modprobe br_netfilter
+
+    - name: Configure modules to load at boot
+      ansible.builtin.shell: |
+        tee /etc/modules-load.d/k8s.conf <<EOF
+        overlay
+        br_netfilter
+        EOF
+
+    - name: Configure sysctl settings for Kubernetes
+      ansible.builtin.shell: |
+        tee /etc/sysctl.d/kubernetes.conf <<EOT
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.bridge.bridge-nf-call-iptables = 1
+        net.ipv4.ip_forward = 1
+        EOT
+      notify: Apply sysctl settings
+
+    - name: Install containerd
+      ansible.builtin.shell: |
+        apt update && apt install containerd.io -y
+        containerd config default | tee /etc/containerd/config.toml >/dev/null 2>&1
+        sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+        systemctl restart containerd
+
+    - name: Remove all Kubernetes APT sources
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/kubernetes.list
+        - /etc/apt/sources.list.d/kubernetes*
+
+    - name: Remove old Kubernetes APT key
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        state: absent
+
+    - name: Download Kubernetes APT repository key
+      get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+        dest: /tmp/kubernetes-release.key
+        mode: '0644'
+
+    - name: Add Kubernetes APT repository key
+      command: >
+        sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+        state: present
+
+    - name: Update package index
+      ansible.builtin.apt:
+        update_cache: yes
+      tags:
+        - install
+
+    - name: Install Kubernetes components
+      ansible.builtin.shell: apt install kubelet kubeadm kubectl -y
+
+    - name: Join Kubernetes cluster
+      ansible.builtin.shell: "{{ lookup('file', '/tmp/kubeadm_join_command.sh') }}"
+
+  handlers:
+    - name: Apply sysctl settings
+      ansible.builtin.shell: sysctl --system

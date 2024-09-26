@@ -1,0 +1,160 @@
+---
+- name: Kubernetes Master Node Setup
+  hosts: master1
+  become: yes
+  tasks:
+    - name: Stop Kubernetes services
+      ansible.builtin.shell: |
+        systemctl stop kubelet || true
+        systemctl stop kube-apiserver.service || true
+        systemctl stop kube-controller-manager.service || true
+        systemctl stop kube-scheduler.service || true
+        systemctl stop etcd.service || true
+      ignore_errors: yes
+
+    - name: Remove Kubernetes manifest files
+      ansible.builtin.shell: |
+        rm /etc/kubernetes/manifests/kube-apiserver.yaml || true
+        rm /etc/kubernetes/manifests/kube-controller-manager.yaml || true
+        rm /etc/kubernetes/manifests/kube-scheduler.yaml || true
+        rm /etc/kubernetes/manifests/etcd.yaml || true
+        rm -rf /var/lib/etcd || true
+
+    - name: Reset kubeadm
+      ansible.builtin.shell: kubeadm reset -f
+      ignore_errors: yes
+
+    - name: Set hostname for the Kubernetes master node
+      ansible.builtin.shell: hostnamectl set-hostname "k8s-master-noble"
+
+    - name: Disable swap
+      ansible.builtin.shell: |
+        swapoff -a
+        sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+
+    - name: Load necessary kernel modules
+      ansible.builtin.shell: |
+        modprobe overlay
+        modprobe br_netfilter
+
+    - name: Configure modules to load at boot
+      ansible.builtin.shell: |
+        tee /etc/modules-load.d/k8s.conf <<EOF
+        overlay
+        br_netfilter
+        EOF
+
+    - name: Configure sysctl settings for Kubernetes
+      ansible.builtin.shell: |
+        tee /etc/sysctl.d/kubernetes.conf <<EOT
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.bridge.bridge-nf-call-iptables = 1
+        net.ipv4.ip_forward = 1
+        EOT
+      notify: Apply sysctl settings
+
+    - name: Install containerd
+      ansible.builtin.shell: |
+        apt update && apt install containerd.io -y
+        containerd config default | tee /etc/containerd/config.toml >/dev/null 2>&1
+        sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
+        systemctl restart containerd
+
+    - name: Remove all Kubernetes APT sources
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/apt/sources.list.d/kubernetes.list
+        - /etc/apt/sources.list.d/kubernetes*
+
+
+    - name: Remove old Kubernetes APT key
+      ansible.builtin.file:
+        path: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+        state: absent
+
+    - name: Remove old Kubernetes APT repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.28/deb/ /"
+        state: absent
+
+
+    - name: Download Kubernetes APT repository key
+      get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+        dest: /tmp/kubernetes-release.key
+        mode: '0644'
+
+    - name: Add Kubernetes APT repository key
+      command: >
+        sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg /tmp/kubernetes-release.key
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes APT repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+        state: present
+
+    - name: Update package index again
+      apt:
+        update_cache: yes
+      tags:
+        - install
+
+    - name: Update package index
+      ansible.builtin.apt:
+        update_cache: yes
+      tags:
+        - install
+
+
+    - name: Install Kubernetes components
+      ansible.builtin.shell: apt install kubelet kubeadm kubectl -y
+
+    - name: Initialize Kubernetes master node
+      ansible.builtin.shell: kubeadm init --control-plane-endpoint=k8s-master-noble
+
+    - name: Configure kubectl for the user
+      block:
+        - name: Ensure .kube directory exists
+          ansible.builtin.file:
+            path: "{{ ansible_env.HOME }}/.kube"
+            state: directory
+            mode: '0755'
+
+        - name: Copy Kubernetes admin config to user's kube directory
+          ansible.builtin.copy:
+            src: /etc/kubernetes/admin.conf
+            dest: "{{ ansible_env.HOME }}/.kube/config"
+            owner: "{{ ansible_user_id }}"
+            group: "{{ ansible_user_id }}"
+            mode: '0644'
+
+    - name: Save kubeadm join command
+      shell: kubeadm token create --print-join-command
+      register: join_command
+
+    - name: Show kubeadm join command
+      debug:
+        msg: "Join command: {{ join_command.stdout }}"
+
+    - name: Save join command to file
+      copy:
+        content: "{{ join_command.stdout }}"
+        dest: /tmp/kubeadm_join_command.sh
+
+
+    - name: Install Flannel network plugin
+      ansible.builtin.shell: kubectl apply -f https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+
+    - name: Check Kubernetes nodes
+      ansible.builtin.shell: kubectl get nodes
+
+    - name: Check Kubernetes pods in kube-system namespace
+      ansible.builtin.shell: kubectl get pods -n kube-system
+
+  handlers:
+    - name: Apply sysctl settings
+      ansible.builtin.shell: sysctl --system
