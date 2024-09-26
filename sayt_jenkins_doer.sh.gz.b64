@@ -1,0 +1,11 @@
+git clone -b main1 https://github.com/RomanNft/facebook.git
+cd facebook/
+cd ansible/
+bash ansible.sh
+cd ..
+cd monitoring/
+bash grafana.sh
+cd ..
+cd docker-elk/
+docker-compose setup
+docker-compose -f docker-compose.yml -f extensions/fleet/fleet-compose.yml up -d
