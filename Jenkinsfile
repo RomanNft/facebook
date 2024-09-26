@@ -29,13 +29,13 @@ pipeline {
                 script {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
-                            def migrationStatus = sh(script: 'docker inspect --format="{{.State.Status}}" facebook-migration-1', returnStdout: true).trim()
+                            def migrationStatus = sh(script: 'docker inspect --format="{{.State.Status}}" ofline-migration-1', returnStdout: true).trim()
                             return migrationStatus == 'exited'
                         }
-                        def migrationExitCode = sh(script: 'docker inspect --format="{{.State.ExitCode}}" facebook-migration-1', returnStdout: true).trim()
+                        def migrationExitCode = sh(script: 'docker inspect --format="{{.State.ExitCode}}" ofline-migration-1', returnStdout: true).trim()
                         if (migrationExitCode != '0') {
                             echo "Migration container failed with exit code ${migrationExitCode}"
-                            // Продовжуємо виконання, навіть якщо контейнер завершився з помилкою
+                            error "Stopping the pipeline due to migration failure"
                         }
                     }
                 }
