@@ -7,5 +7,4 @@ cd monitoring/
 bash grafana.sh
 cd ..
 cd docker-elk/
-docker-compose setup
-docker-compose -f docker-compose.yml -f extensions/fleet/fleet-compose.yml up -d
+bash elk.sh
