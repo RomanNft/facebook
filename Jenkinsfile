@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Clone repository') {
             steps {
@@ -11,7 +11,7 @@ pipeline {
         stage('Build Docker Containers') {
             steps {
                 // Build all images including the db
-                sh 'docker-compose build --no-cache migration'
+                sh 'docker-compose build --no-cache'
             }
         }
 
@@ -24,15 +24,15 @@ pipeline {
         stage('Run Containers') {
             steps {
                 sh 'docker-compose up -d'
-                
+
                 // Очікування на успішне завершення контейнера migration
                 script {
                     timeout(time: 5, unit: 'MINUTES') {
                         waitUntil {
-                            def migrationStatus = sh(script: 'docker inspect --format="{{.State.Status}}" ofline-migration-1', returnStdout: true).trim()
+                            def migrationStatus = sh(script: 'docker inspect --format="{{.State.Status}}" migration', returnStdout: true).trim()
                             return migrationStatus == 'exited'
                         }
-                        def migrationExitCode = sh(script: 'docker inspect --format="{{.State.ExitCode}}" ofline-migration-1', returnStdout: true).trim()
+                        def migrationExitCode = sh(script: 'docker inspect --format="{{.State.ExitCode}}" migration', returnStdout: true).trim()
                         if (migrationExitCode != '0') {
                             echo "Migration container failed with exit code ${migrationExitCode}"
                             error "Stopping the pipeline due to migration failure"
