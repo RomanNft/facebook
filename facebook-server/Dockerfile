@@ -24,4 +24,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app .
 ENTRYPOINT ["dotnet", "Facebook_Api.dll"]
-
+# Відкриваємо порт 
+EXPOSE 5181
