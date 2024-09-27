@@ -60,16 +60,19 @@ fi
 echo "Поточний PATH: $PATH"
 
 # Налаштування та запуск сервісів через Docker Compose
-cd /home/roman/facebook/
+cd facebook-server/
 
 # Надання прав для виконання скрипта wait-for-postgres.sh
 if [ -f wait-for-postgres.sh ]; then
     chmod +x wait-for-postgres.sh
 fi
 
+# Повернення на рівень вище після виконання chmod
+cd ..
+
 # Запуск Docker Compose з побудовою сервісів
-if [ -f docker-compose.yml ]; then
+if [ -f ./docker-compose.yaml ]; then
     docker-compose up --build
 else
-    echo "Файл docker-compose.yml не знайдено у /home/roman/facebook/"
+    echo "Файл docker-compose.yaml не знайдено"
 fi
