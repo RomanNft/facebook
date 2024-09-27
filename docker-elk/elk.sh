@@ -1,4 +1,5 @@
 #!/bin/bash
+chmod +x setup/entrypoint.sh
 docker-compose up setup
 docker compose -f docker-compose.yml -f extensions/filebeat/filebeat-compose.yml up -d
 docker compose -f docker-compose.yml -f extensions/fleet/fleet-compose.yml up -d
