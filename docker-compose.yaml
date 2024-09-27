@@ -10,12 +10,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data    
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 80s
       timeout: 40s
       retries: 40
+    restart: always
+
   migration:
     image: roman2447/migration:latest
     build:
@@ -32,6 +34,7 @@ services:
       - POSTGRES_PASSWORD=123456
     command: >
       sh -c '/app/wait-for-postgres.sh db /app/apply-migrations.sh'
+    restart: on-failure
 
   facebook-server:
     build:
@@ -52,6 +55,7 @@ services:
       - POSTGRES_PASSWORD=123456
     command: >
       sh -c "dotnet Facebook_Api.dll"
+    restart: on-failure
 
   facebook-client:
     build:
@@ -61,6 +65,7 @@ services:
       - "5173:80"
     depends_on:
       - facebook-server
+    restart: on-failure
 
 volumes:
   postgres_data:
