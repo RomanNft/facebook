@@ -50,7 +50,7 @@ resource "aws_instance" "EC2-Instance" {
     }
   }
 
-  user_data = file("sayt_jenkins_doer.sh")
+  user_data = file("${path.module}/sayt_jenkins_doer.sh")
 
   tags = {
     Name = "EC2-Instance"
