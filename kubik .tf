@@ -6,14 +6,14 @@ provider "aws" {
 
 locals {
   name   = "kubuk-testr"  # Declare the local "name"
-  region = "eu-central-1"
+  region = "eu-central-1"  # Повернено до eu-central-1
 
-  vpc_cidr = "10.127.0.0/24"
+  vpc_cidr = "10.123.0.0/16"
   azs      = ["eu-central-1a", "eu-central-1b"]
 
-  public_subnets  = ["10.127.0.20/24"]
-  private_subnets = ["10.127.0.30/24"]
-  intra_subnets   = ["10.127.0.40/24"]
+  public_subnets  = ["10.123.1.0/24", "10.123.2.0/24"]
+  private_subnets = ["10.123.3.0/24", "10.123.4.0/24"]
+  intra_subnets   = ["10.123.5.0/24", "10.123.6.0/24"]
 }
 
 # Add the VPC module
@@ -36,13 +36,13 @@ resource "aws_instance" "EC2-Instance" {
   availability_zone      = "eu-central-1a"
   count                  = 1
   ami                    = "ami-0e04bcbe83a83792e"
-  instance_type          = "t2.micro"
+  instance_type          = "c5a.xlarge"
   key_name               = "tolik"
   vpc_security_group_ids = [aws_security_group.oleg.id]
 
   ebs_block_device {
     device_name           = "/dev/sda1"
-    volume_size           = 30
+    volume_size           = 8
     volume_type           = "standard"
     delete_on_termination = true
     tags = {
@@ -50,7 +50,7 @@ resource "aws_instance" "EC2-Instance" {
     }
   }
 
-  user_data = file("sayt_jenkins_doer.sh.gz.b64")
+  user_data = file("sayt_jenkins_doer.sh")
 
   tags = {
     Name = "EC2-Instance"
@@ -84,8 +84,6 @@ module "eks" {
       instance_types = ["t4g.micro"]
       capacity_type  = "SPOT"
 
-      user_data = file("sayt_jenkins_doer.sh.gz.b64")
-
       tags = {
         Name = "EKS-Worker-Node"
       }
@@ -102,7 +100,7 @@ resource "aws_security_group" "oleg" {
   description = "Allow 22, 80, 443, 8080, and other ports inbound traffic"
 
   dynamic "ingress" {
-    for_each = [22, 80, 443, 8080, 8000, 81, 55555, 1433, 5034]
+    for_each = [22, 80, 443, 8080, 8000, 81, 55555, 1433, 5034, 5173, 5181, 5432, 8220, 5601, 9600, 9300, 9090, 9100, 3000, 8081]
     content {
       from_port   = ingress.value
       to_port     = ingress.value
@@ -120,5 +118,15 @@ resource "aws_security_group" "oleg" {
 
   tags = {
     Name = "oleg-security-group"
+  }
+}
+
+# Додати S3 бакет
+resource "aws_s3_bucket" "my_bucket" {
+  bucket = "iamfirst"
+
+  tags = {
+    Name        = "My Terraform Bucket"
+    Environment = "Dev"
   }
 }
