@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: roman2447/db:latest
+    image: roman2447/db-facebook:latest
     environment:
       POSTGRES_DB: facebook
       POSTGRES_USER: postgres
