@@ -8,12 +8,12 @@ locals {
   name   = "kubuk-testr"  # Declare the local "name"
   region = "eu-central-1"  # Повернено до eu-central-1
 
-  vpc_cidr = "10.123.0.0/16"
+  vpc_cidr = "10.127.0.0/16"
   azs      = ["eu-central-1a", "eu-central-1b"]
 
-  public_subnets  = ["10.123.1.0/24", "10.123.2.0/24"]
-  private_subnets = ["10.123.3.0/24", "10.123.4.0/24"]
-  intra_subnets   = ["10.123.5.0/24", "10.123.6.0/24"]
+  public_subnets  = ["10.127.1.0/24", "10.127.2.0/24"]
+  private_subnets = ["10.127.3.0/24", "10.127.4.0/24"]
+  intra_subnets   = ["10.127.5.0/24", "10.127.6.0/24"]
 }
 
 # Add the VPC module
@@ -36,13 +36,13 @@ resource "aws_instance" "EC2-Instance" {
   availability_zone      = "eu-central-1a"
   count                  = 1
   ami                    = "ami-0e04bcbe83a83792e"
-  instance_type          = "c5a.xlarge"
+  instance_type          = "t3.xlarge"
   key_name               = "tolik"
   vpc_security_group_ids = [aws_security_group.oleg.id]
 
   ebs_block_device {
     device_name           = "/dev/sda1"
-    volume_size           = 8
+    volume_size           = 30
     volume_type           = "standard"
     delete_on_termination = true
     tags = {
