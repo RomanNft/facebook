@@ -6,7 +6,7 @@ sudo apt-get upgrade -y
 
 # Перевірка наявності Docker та Docker Compose
 if ! command -v docker &> /dev/null; then
-    # Встановлення Docker
+    echo "Встановлення Docker..."
     sudo apt-get remove -y docker docker-engine docker.io containerd runc
     sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 
@@ -20,7 +20,8 @@ if ! command -v docker &> /dev/null; then
 fi
 
 if ! command -v docker-compose &> /dev/null; then
-    # Встановлення Docker Compose
+    echo "Встановлення Docker Compose..."
+    # Встановлення останньої версії Docker Compose
     sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
 fi
@@ -31,10 +32,11 @@ sudo systemctl enable docker
 sudo usermod -aG docker $USER
 
 # Повідомлення про перезайняття
-echo "Для застосування змін вам потрібно вийти та знову зайти."
+echo "Для застосування змін вам потрібно вийти та знову зайти або перезавантажити сесію."
 
 # Встановлення .NET SDK
 if ! command -v dotnet &> /dev/null; then
+    echo "Встановлення .NET SDK..."
     sudo apt-get install -y apt-transport-https
     sudo apt-get update
     sudo apt-get install -y dotnet-sdk-8.0
@@ -42,13 +44,15 @@ fi
 
 # Встановлення PostgreSQL клієнта
 if ! command -v psql &> /dev/null; then
+    echo "Встановлення PostgreSQL клієнта..."
     sudo apt-get install -y postgresql-client
 fi
 
 # Встановлення dotnet-ef
 if ! command -v dotnet-ef &> /dev/null; then
+    echo "Встановлення dotnet-ef..."
     dotnet tool install --global dotnet-ef
-    echo 'export PATH="$PATH:/root/.dotnet/tools"' >> ~/.bashrc
+    echo 'export PATH="$PATH:$HOME/.dotnet/tools"' >> ~/.bashrc
     source ~/.bashrc
 fi
 
@@ -56,9 +60,16 @@ fi
 echo "Поточний PATH: $PATH"
 
 # Налаштування та запуск сервісів через Docker Compose
-cd facebook-server/
-chmod +x wait-for-postgres.sh
-cd ..
+cd /home/roman/facebook/
+
+# Надання прав для виконання скрипта wait-for-postgres.sh
+if [ -f wait-for-postgres.sh ]; then
+    chmod +x wait-for-postgres.sh
+fi
 
 # Запуск Docker Compose з побудовою сервісів
-docker-compose up --build
+if [ -f docker-compose.yml ]; then
+    docker-compose up --build
+else
+    echo "Файл docker-compose.yml не знайдено у /home/roman/facebook/"
+fi
