@@ -1,10 +1,10 @@
 pipeline {
     agent any
-    
+
     stages {
         stage('Clone repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/RomanNft/qwqaz'
+                checkout scm
             }
         }
 
@@ -31,6 +31,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my_service_', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     script {
+                        sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
                         sh 'docker push roman2447/facebook-client:latest'
                         sh 'docker push roman2447/facebook-server:latest'
                         sh 'docker push roman2447/db:latest'
@@ -42,7 +43,16 @@ pipeline {
         stage('Clean Up') {
             steps {
                 sh 'docker-compose down'
+                sh 'docker system prune -f'
             }
+        }
+    }
+
+    post {
+        failure {
+            echo 'Pipeline failed, cleaning up...'
+            sh 'docker-compose down || true'
+            sh 'docker system prune -f || true'
         }
     }
 }
