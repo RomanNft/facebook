@@ -21,6 +21,12 @@ pipeline {
             }
         }
 
+        stage('Run Containers') {
+            steps {
+                sh 'docker-compose up -d'
+            }
+        }
+
         stage('Push Docker Images') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'my_service_', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
