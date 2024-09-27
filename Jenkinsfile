@@ -34,7 +34,7 @@ pipeline {
                         sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS'
                         sh 'docker push roman2447/facebook-client:latest'
                         sh 'docker push roman2447/facebook-server:latest'
-                        sh 'docker push roman2447/db:latest'
+                        sh 'docker push roman2447/db-facebook:latest'
                     }
                 }
             }
