@@ -22,4 +22,4 @@ COPY apply-migrations.sh /app/apply-migrations.sh
 RUN chmod +x /app/apply-migrations.sh
 
 # Запуск міграцій
-CMD ["sh", "-c", "/app/wait-for-postgres.sh db /app/apply-migrations.sh"]
+CMD ["sh", "-c", "dotnet tool install --global dotnet-ef && /app/wait-for-postgres.sh db 'dotnet ef database update --configuration Release'"]
