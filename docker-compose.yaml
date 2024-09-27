@@ -10,8 +10,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-
+      - postgres_data:/var/lib/postgresql/data    
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 80s
+      timeout: 40s
+      retries: 40
   migration:
     image: roman2447/migration:latest
     build:
@@ -21,7 +25,8 @@ services:
       - ./facebook-server:/app
     working_dir: /app/Facebook_Api
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
