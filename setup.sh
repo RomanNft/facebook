@@ -17,7 +17,7 @@ sudo apt-get update
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # Встановлення Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/download/v2.10.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Запуск та автозапуск Docker
@@ -29,7 +29,6 @@ sudo usermod -aG docker $USER
 echo "Для застосування змін вам потрібно вийти та знову зайти."
 
 # Встановлення .NET SDK
-sudo snap install dotnet-sdk --classic
 sudo apt-get install -y apt-transport-https
 sudo apt-get update
 sudo apt-get install -y dotnet-sdk-8.0
@@ -48,6 +47,6 @@ echo "Поточний PATH: $PATH"
 cd facebook-server/
 chmod +x wait-for-postgres.sh
 cd ..
+
 # Запуск Docker Compose з побудовою сервісів
 docker-compose up --build
-
