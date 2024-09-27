@@ -72,7 +72,7 @@ cd ..
 
 # Запуск Docker Compose з побудовою сервісів
 if [ -f ./docker-compose.yaml ]; then
-    docker-compose up --build
+    docker-compose up --build -d
 else
     echo "Файл docker-compose.yaml не знайдено"
 fi
