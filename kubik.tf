@@ -36,9 +36,9 @@ resource "aws_instance" "EC2-Instance" {
   availability_zone      = "eu-central-1a"
   count                  = 1
   ami                    = "ami-0e04bcbe83a83792e"
-  instance_type          = "t3.xlarge"
+  instance_type          = "t2.2xlarge"
   key_name               = "tolik"
-  vpc_security_group_ids = [aws_security_group.oleg.id]
+  vpc_security_group_ids = [aws_security_group.sayt.id]
 
   ebs_block_device {
     device_name           = "/dev/sda1"
@@ -95,8 +95,8 @@ module "eks" {
   }
 }
 
-resource "aws_security_group" "oleg" {
-  name        = "oleg"
+resource "aws_security_group" "sayt" {
+  name        = "sayt"
   description = "Allow 22, 80, 443, 8080, and other ports inbound traffic"
 
   dynamic "ingress" {
@@ -117,7 +117,7 @@ resource "aws_security_group" "oleg" {
   }
 
   tags = {
-    Name = "oleg-security-group"
+    Name = "security-group"
   }
 }
 
