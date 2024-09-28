@@ -56,6 +56,6 @@ tar xzvf elastic-agent-8.15.2-linux-x86_64.tar.gz
 cd elastic-agent-8.15.2-linux-x86_64
 
 
-sudo ./elastic-agent install --url=$FLEET_URL --enrollment-token=$ENROLLMENT_TOKEN --insecure -y
+sudo ./elastic-agent install --url=$FLEET_URL --enrollment-token=$ENROLLMENT_TOKEN --insecure
 
 echo "Elastic Agent встановлено успішно."
