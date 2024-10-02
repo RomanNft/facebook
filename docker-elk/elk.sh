@@ -1,4 +1,10 @@
 #!/bin/bash
+sudo systemctl stop elastic-agent
+sudo elastic-agent uninstall
+sudo rm -rf /opt/Elastic/Agent
+cd ..
+rm -rf elastik-agent-8.15.2-linux-x86_64
+rm -rf elastik-agent-8.15.2-linux-x86_64.tar.gz
 chmod +x setup/entrypoint.sh
 docker-compose up setup
 docker compose -f docker-compose.yml -f extensions/filebeat/filebeat-compose.yml up -d
