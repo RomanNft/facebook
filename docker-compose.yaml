@@ -41,7 +41,7 @@ services:
       context: ./facebook-server
     image: roman2447/facebook-server:latest
     ports:
-      - "5181:80"
+      - "5181:8080"
     depends_on:
       migration:
         condition: service_completed_successfully
