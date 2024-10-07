@@ -19,6 +19,9 @@ RUN dotnet publish -o /app
 COPY wait-for-postgres.sh /app/wait-for-postgres.sh
 RUN chmod +x /app/wait-for-postgres.sh
 
+# Копіюємо директорію EmailTemplates
+COPY Facebook_Api/EmailTemplates /app/EmailTemplates
+
 # Остання стадія/образ
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
