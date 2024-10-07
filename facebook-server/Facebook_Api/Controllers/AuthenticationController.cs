@@ -36,7 +36,7 @@ public class AuthenticationController(ISender mediatr,
     : ApiController
 {
     [HttpPost("register")]
-public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
+public async Task<IActionResult> RegisterAsync([FromForm] RegisterRequest request)
 {
     var baseUrl = configuration.GetRequiredSection("HostSettings:ClientURL").Value;
 
