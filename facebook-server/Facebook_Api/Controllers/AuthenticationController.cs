@@ -36,25 +36,25 @@ public class AuthenticationController(ISender mediatr,
     : ApiController
 {
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterAsync([FromForm] RegisterRequest request)
+public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequest request)
+{
+    var baseUrl = configuration.GetRequiredSection("HostSettings:ClientURL").Value;
+
+    byte[] image = null;
+    if (request.Avatar != null && request.Avatar.Length > 0)
     {
-        var baseUrl = configuration.GetRequiredSection("HostSettings:ClientURL").Value;
-
-        byte[] image = [];
-        if (request.Avatar != null && request.Avatar.Length > 0)
-        {
-            using MemoryStream memoryStream = new();
-            await request.Avatar.CopyToAsync(memoryStream);
-            image = memoryStream.ToArray();
-        }
-
-        var authResult = await mediatr.Send(mapper
-            .Map<RegisterCommand>((request, baseUrl, image)));
-
-        return authResult.Match(
-            authResult => Ok(mapper.Map<AuthenticationResponse>(authResult)),
-            errors => Problem(errors));
+        using MemoryStream memoryStream = new();
+        await request.Avatar.CopyToAsync(memoryStream);
+        image = memoryStream.ToArray();
     }
+
+    var authResult = await mediatr.Send(mapper
+        .Map<RegisterCommand>((request, baseUrl, image)));
+
+    return authResult.Match(
+        authResult => Ok(mapper.Map<AuthenticationResponse>(authResult)),
+        errors => Problem(errors));
+}
 
 
     [HttpGet("confirm-email")]
