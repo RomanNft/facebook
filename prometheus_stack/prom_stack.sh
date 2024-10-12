@@ -7,11 +7,11 @@ sleep 30
 kubectl get deployments --namespace=monitoring
 kubectl create -f prometheus-service.yaml --namespace=monitoring
 
-cd ../kube-state-metrics-configs
+cd ..
 kubectl apply -f kube-state-metrics-configs/
 kubectl get deployments kube-state-metrics -n kube-system
 
-cd ../kubernetes-node-exporter
+cd kubernetes-node-exporter
 kubectl create -f daemonset.yaml
 kubectl get daemonset -n monitoring
 kubectl create -f service.yaml
