@@ -8,7 +8,7 @@ chmod +x setup/entrypoint.sh
 docker-compose up setup
 docker compose -f docker-compose.yml -f extensions/filebeat/filebeat-compose.yml up -d
 docker compose -f docker-compose.yml -f extensions/fleet/fleet-compose.yml up -d
-
+sleep 30
 KIBANA_URL="http://0.0.0.0:5601"
 KIBANA_USER="elastic"
 KIBANA_PASSWORD="changeme"
@@ -65,19 +65,3 @@ sudo ./elastic-agent install --url=$FLEET_URL --enrollment-token=$ENROLLMENT_TOK
 
 echo "Elastic Agent встановлено успішно."
 cd ..
-kubectl apply -f elastic-agent-standalone-kubernetes.yml
-kubectl patch configmap coredns -n kube-system --type merge -p '{"data":{"Corefile":".:53 {\n    errors\n    health {\n       lameduck 5s\n    }\n    ready\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n       pods insecure\n       fallthrough in-addr.arpa ip6.arpa\n       ttl 30\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf {\n       max_concurrent 1000\n    }\n    cache 30\n    loop\n    reload\n    loadbalance\n    rewrite name elasticsearch 192.168.0.103\n}  \n"}}'
-kubectl patch configmap coredns -n kube-system --type merge -p '{"data":{"Corefile":".:53 {\n    errors\n    health {\n       lameduck 5s\n    }\n    ready\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n       pods insecure\n       fallthrough in-addr.arpa ip6.arpa\n       ttl 30\n    }\n    prometheus :9153\n    forward . /etc/resolv.conf {\n       max_concurrent 1000\n    }\n    cache 30\n    loop\n    reload\n    loadbalance\n    rewrite name elasticsearch 192.168.0.103\n    rewrite name k8s-worker-noble 192.168.0.102\n}  \n"}}'
-kubectl -n kube-system rollout restart deployment coredns
-
-pods=$(kubectl get pods -n kube-system -l app=elastic-agent -o jsonpath="{.items[*].metadata.name}")
-
-if [ -z "$pods" ]; then
-  echo "Elastic Agent pod not found in the kube-system namespace."
-else
-  # Видаляємо кожен знайдений pod
-  for pod in $pods; do
-    echo "Deleting Elastic Agent pod: $pod"
-    kubectl delete pod "$pod" -n kube-system
-  done
-fi
