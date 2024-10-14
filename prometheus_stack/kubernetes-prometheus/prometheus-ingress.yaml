@@ -1,5 +1,3 @@
-## Nginx Ingress
-## Follow https://devopscube.com/setup-ingress-kubernetes-nginx-controller/
 
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -10,7 +8,7 @@ metadata:
     kubernetes.io/ingress.class: nginx
 spec:
   rules:
-  # Use the host you used in your kubernetes Ingress Configurations
+  
   - host: prometheus.example.com
     http:
       paths:
