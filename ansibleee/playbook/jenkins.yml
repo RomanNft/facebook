@@ -53,15 +53,6 @@
       debug:
         msg: "Jenkins SSH public key: {{ jenkins_ssh_pub_key.stdout }}"
 
-    - name: Display Jenkins SSH private key
-      command: docker exec jenkins cat /var/jenkins_home/.ssh/id_ed25519
-      register: jenkins_ssh_priv_key
-      changed_when: false
-
-    - name: Print Jenkins SSH private key
-      debug:
-        msg: "Jenkins SSH private key (WARNING: Do not share this): {{ jenkins_ssh_priv_key.stdout }}"
-
     - name: Add GitHub to known hosts for Jenkins container
       command: docker exec jenkins bash -c 'ssh-keyscan -t ed25519 github.com >> /var/jenkins_home/.ssh/known_hosts'
 
