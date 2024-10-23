@@ -1,0 +1,191 @@
+Option Base 1
+Option Explicit
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+Dim intL As Integer, intM As Integer, intV As Integer, intG As Integer, intH As Integer
+Dim intR As Integer, intC As Integer, intP As Integer, intT As Integer
+Dim intI As Integer, intJ As Integer, intK As Integer
+Dim intW As Integer, intO As Integer, intS As Integer
+Dim intU As Integer
+Dim intA As Byte
+Dim arrQ(3) As Integer
+Dim CB As Variant, CU As Variant
+Dim MyRange As Range, FaRange As Range
+
+Dim arrM(1 To 11) As Integer ' Äëÿ ê³ëüêîñò³ ðÿäê³â âèõ³äíî¿ ìàòðèö³ ðåçåðâóºòüñÿ ïàì'ÿòü
+Dim arrT(1 To 11) As Variant ' Äëÿ òèì÷àñîâîãî ìàñèâó ðåçåðâóºòüñÿ ïàì'ÿòü
+
+Dim Titl As String
+Dim Prompt As String
+Dim intAns As Integer
+
+intA = 0
+If Target.Rows.Count < 3 Or Target.Columns.Count < 3 Then Exit Sub
+If Target.Rows.Count > 16 Or Target.Columns.Count > 7 Then
+     Prompt = "×èñëî ðÿäê³â òàáëèö³ ³ñòèííîñò³ íå ïîâèííî ïåðåâèùóâàòè 16, ÷èñëà ñòîâïö³â òàáëèö³ ³ñòèííîñò³ íå ïîâèííî ïåðåâèùóâàòè 7 !"
+     Titl = "Òàáëèöÿ ³ñòèííîñò³"
+     intAns = MsgBox(Prompt, vbInformation, Titl)
+     Exit Sub
+End If
+
+With Target
+.Borders.LineStyle = xlContinuous
+.Borders.ColorIndex = 5
+
+.BorderAround LineStyle:=xlDouble, Weight:=xlMedium, ColorIndex:=7
+.Range(Cells(1, 1), Cells(1, Target.Columns.Count)).BorderAround LineStyle:=xlDouble, Weight:=xlMedium, ColorIndex:=7
+.Range(Cells(1, 1), Cells(Target.Rows.Count, 1)).BorderAround LineStyle:=xlDouble, Weight:=xlMedium, ColorIndex:=7
+
+.Cells(1, 1).Value = "¹"
+.Cells(1, 1).Font.Bold = True
+.Cells(1, 1).Font.ColorIndex = 5
+.Cells(1, 1).HorizontalAlignment = xlCenter
+.Cells(1, 1).VerticalAlignment = xlCenter
+
+For intL = 2 To .Columns.Count
+
+.Cells(1, intL).Value = "X" & intL - 1
+.Cells(1, intL).Font.Bold = True
+.Cells(1, intL).Font.ColorIndex = 5
+.Cells(1, intL).HorizontalAlignment = xlCenter
+.Cells(1, intL).VerticalAlignment = xlCenter
+
+Next intL
+
+For intL = 2 To .Rows.Count
+
+.Cells(intL, 1).Value = intL - 1
+.Cells(intL, 1).Font.Bold = True
+.Cells(intL, 1).Font.ColorIndex = 5
+.Cells(intL, 1).HorizontalAlignment = xlCenter
+.Cells(intL, 1).VerticalAlignment = xlCenter
+
+Next intL
+End With
+
+intI = Target.Rows.Count - 1
+intJ = Target.Columns.Count - 1
+
+intR = ActiveCell.Row + intI + 2
+intC = ActiveCell.Column
+
+'intW = ActiveCell.Row + intI + 2
+intT = ActiveCell.Row - 2
+
+  Prompt = "Âè îáðàëè :" & Chr(13) & Chr(10) & "çì³ííèõ (X1, X2, ... ) - " & Target.Columns.Count - 1 & Chr(13) & Chr(10) & "ðÿäê³â ìàòðèö³ (G1, G2, ... ) - " & Target.Rows.Count - 1 & Chr(13) & Chr(10) & "Ïðîäîâæóâàòè ?"
+  Titl = "Ïàðàìåòðè òàáëèö³ ³ñòèííîñò³"
+  intAns = MsgBox(Prompt, vbYesNo, Titl)
+  If intAns = vbYes Then GoTo 10
+  Exit Sub
+
+10 Set MyRange = Target.Range(Cells(2, 2), Cells(Target.Rows.Count, Target.Columns.Count))
+CB = MyRange.Value
+
+   For intK = 1 To intI - 1
+     arrM(intK) = 1
+   Next intK
+   arrM(intI) = 0
+
+20 arrM(intI) = arrM(intI) + 1
+   If arrM(intI) <= intJ Then GoTo 30
+
+   intV = -1
+
+   For intM = 1 To intI - 1
+   intV = intV + 1
+   arrM(intI - intV) = 1
+   arrM(intI - intM) = arrM(intI - intM) + 1
+   If arrM(intI - intM) <= intJ Then GoTo 30
+   Next intM
+
+  Prompt = "Ç À Â Å Ð Ø Å Í Î"
+  Titl = "Excel"
+  intAns = MsgBox(Prompt, vbInformation, Titl)
+ 
+    Exit Sub
+   
+30 intG = 11 'G ê³ëüêîñò³ ðÿäê³â ìàòðèö³
+   intH = 2
+   arrQ(1) = 1
+   arrQ(2) = 1
+40 If arrQ(intH) = intG Then GoTo 50
+   intP = intH
+   GoTo 60
+50 intP = intP - 1
+   If intP = 0 Then GoTo 70
+60 For intO = intH To intP Step -1
+   arrQ(intO) = arrQ(intP) + intO - intP + 1
+   Next intO
+
+   If CB(arrQ(1), arrM(arrQ(1))) <> CB(arrQ(2), arrM(arrQ(2))) And arrM(arrQ(1)) = arrM(arrQ(2)) Then GoTo 20
+
+   GoTo 40
+
+70  If intA = 1 Then GoTo 90
+    
+    intA = 1
+    Set FaRange = Worksheets("Ëèñò10").Range(Cells(intR, intC + 1), Cells(intR, intC + intJ)) 'Çàçíà÷àºòüñÿ íîìåð ëèñòà Excel
+    CU = FaRange.Value
+
+    For intS = 1 To intJ 'ê³ëüê³ñòü ñòîâïö³â âèõ³äíî¿ ìàòðèö³
+      If Len(CU(1, intS)) <> 0 Then
+       Prompt = "Î÷èñòèòè ïåðøèé ðÿäîê äëÿ çàïèñó â Excel"
+       Titl = "Excel"
+       intAns = MsgBox(Prompt, vbInformation, Titl)
+       Exit Sub
+      End If
+    Next intS
+80  For intS = 1 To intI 'ê³ëüê³ñòü ðÿäê³â âèõ³äíî¿ ìàòðèö³
+      Cells(intR, intC + arrM(intS)) = CB(intS, arrM(intS))
+    Next intS
+
+    intR = intR + 1
+    GoTo 20
+
+90  Erase arrT
+    For intS = 1 To intI 'ê³ëüê³ñòü ðÿäê³â âèõ³äíî¿ ìàòðèö³
+      arrT(arrM(intS)) = CB(intS, arrM(intS))
+    Next intS
+     
+    intW = 20 ' ðÿäîê, ïî÷èíàþ÷è ç ÿêîãî çàïèñóºòüñÿ ðåçóëüòàò
+
+100 For intS = 1 To intJ 'ê³ëüê³ñòü ñòîâïö³â âèõ³äíî¿ ìàòðèö³
+      If arrT(intS) <> Cells(intW, intC + intS) And arrT(intS) <> Empty And Cells(intW, intC + intS) <> "" Then GoTo 110
+      If arrT(intS) <> Cells(intW, intC + intS) Then GoTo 105
+    Next intS
+    
+    GoTo 20
+    
+105     intP = 0
+        intU = 0
+
+    For intS = 1 To intJ '÷èñëî ñòîâïö³â òàáëèö³
+
+      If arrT(intS) <> Cells(intW, intC + intS) And arrT(intS) <> Empty And Cells(intW, intC + intS) <> "" Then GoTo 110
+
+      If arrT(intS) <> Empty And Cells(intW, intC + intS) = "" Then intP = intP + 1
+
+      If arrT(intS) = Empty And Cells(intW, intC + intS) <> "" Then intU = intU + 1
+
+      If intP > 0 And intU > 0 Then GoTo 110
+
+    Next intS
+     
+     If intP > intU Then GoTo 20
+
+     If intP <= intU Then
+       
+       Worksheets("Ëèñò10").Range(Cells(intW, intC + 1), Cells(intW, intC + intJ)).Select 'Çàçíà÷àºòüñÿ íîìåð ëèñòà Excel
+       Selection.Delete Shift:=xlUp
+       
+       intR = intR - 1
+       If intW < intR Then GoTo 100
+       GoTo 80
+       
+     End If
+
+110    intW = intW + 1
+       If intW < intR Then GoTo 100
+       GoTo 80
+
+End Sub
+  
